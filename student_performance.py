@@ -1,13 +1,13 @@
 ##### Dataset Link: https://www.kaggle.com/datasets/spscientist/students-performance-in-exams #####
 
-# Libraries #
+### Libraries ###
 import pandas as pd
 import matplotlib.pyplot as plot
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
-# Variables #
-print_students = 10
+### Variables #
+PRINT_STUDENTS = 10
 
 # Read the file path and return it to a variable #
 def read_dataset(file):
@@ -148,41 +148,41 @@ def close_students(new_data, data):
     same_cluster_cp['distances'] = distances
     
     # Sort and get the closest students related to the new one #
-    closest_students = same_cluster_cp.sort_values(by='distances').head(print_students)
+    closest_students = same_cluster_cp.sort_values(by='distances').head(PRINT_STUDENTS)
     return closest_students
 
-# core #
+### Core ###
 def main():
-    # -> Pass the .csv name and read it to a variable #
+    # Pass the .csv name and read it to a variable #
     csv_file = 'StudentsPerformance.csv'
     student_data = read_dataset(csv_file)
-    # -> Get average score for each student #
+    # Get average score for each student #
     avg_scores = average(student_data)
-    # -> Convert all string related data to numeric #
+    # Convert all string related data to numeric #
     final_data = numeric_conversion(avg_scores)
-    # -> Get how many intervals the user wants #
+    # Get how many intervals the user wants #
     total_intervals = intervals()
-    # -> Call and create the intervals #
+    # Call and create the intervals #
     data_scaler = StandardScaler() # standardize the data.
     scaled_data = data_scaler.fit_transform(final_data)
-    # -> Use KMeans for the clustering #
+    # Use KMeans for the clustering #
     data_kmeans = KMeans(n_clusters=total_intervals, n_init=10)
     final_data['cluster'] = data_kmeans.fit_predict(scaled_data)
     
-    # -> Display Data Statistics #
+    # Display Data Statistics #
     plot.scatter(final_data['average score'], final_data['cluster'] + 1, c=final_data['cluster'], cmap='viridis') # x, y, color, variant of colors.
     plot.title('Clusterism')
     plot.xlabel("Student's average scores")
     plot.ylabel('Cluster')
-    plot.show() # display.
+    plot.show() # Display.
 
-    # -> Ask the user is he wishes to input a new student #
+    # Ask the user is he wishes to input a new student #
     while True: 
         try:
             answear = str(input("\nDo you wish to add another stunent? yes/no -> ")).strip().lower()
             if answear == 'yes':
                 new_student = add_student()
-                # Redo the process like before #
+                # Redo the process #
                 new_student = pd.DataFrame([new_student]) # dataframe.
                 new_student_avg = average(new_student) # average calculation.
                 new_student_final = numeric_conversion(new_student_avg) # convert strings to numbers.
@@ -201,6 +201,6 @@ def main():
         except ValueError as e:
             print(f"[SYSTEM] Invalid input. Log: {e}")
             
-# Execute the program #
+### Execute the program ###
 if __name__ == '__main__':
     main()
