@@ -6,8 +6,10 @@ import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
+
 ### Variables/Parameters ###
 PRINT_STUDENTS = 10
+
 
 ### Functions/Methods ###
 # Read the file path and return it to a variable #
@@ -16,10 +18,12 @@ def read_dataset(file):
     df = pd.read_csv(file, dtype={'math score': int, 'reading score': int, 'writing score':int})
     return df
 
+
 # Calculate the average for every Student #
 def average(data):
     data['average score'] = (data['math score'] + data['reading score'] + data['writing score'])/3
     return data
+
 
 # Convert strings records to numeric data - mapping #
 def numeric_conversion(data):
@@ -38,6 +42,7 @@ def numeric_conversion(data):
     data['test preparation course'] = data['test preparation course'].replace(preparation_mapping)
     return data
 
+
 # Ask the user on how many Intervals/Clusters they want the data to be split into #
 def intervals(): 
     while True:
@@ -49,6 +54,7 @@ def intervals():
                 print("[SYSTEM] The input was out of bounds, please renter your input. -> ")
         except ValueError as e:
             print(f"Input was invalid, enter an integer. Log: {e}")
+
 
 # Enter the Data for a New Student #
 def add_student():
@@ -71,7 +77,7 @@ def add_student():
             break
         else:
             print("[SYSTEM] Invalid input for the race attribute, try again.\n")
-    
+
     # Parental level of Education #
     while True:
         ple_in = input('[SYSTEM] Enter parental level of education -> ').lower()
@@ -80,7 +86,7 @@ def add_student():
             break
         else:
             print("[SYSTEM] Invalid input for the parental level of education attribute, try again.\n")
-    
+
     # Lunch #
     while True:
         lunch_in = input('[SYSTEM] Enter lunch: ').lower()
@@ -98,7 +104,7 @@ def add_student():
             break
         else:
             print("[ERROR] Invalid input for the test preparation course attribute, try again.\n")
-    
+
     # Exam Scores #
     while True: # Math.
         try:
@@ -135,6 +141,7 @@ def add_student():
             
     return student_data
 
+
 # Find the closest Students to each new addded one #
 def close_students(new_data, data):
     # Filter Students for the new data - make a copy of the original DataFrame #
@@ -151,6 +158,7 @@ def close_students(new_data, data):
     # Sort and get the closest students related to the new one #
     closest_students = same_cluster_cp.sort_values(by='distances').head(PRINT_STUDENTS)
     return closest_students
+
 
 ### Core ###
 def main():
