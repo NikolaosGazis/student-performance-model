@@ -10,6 +10,12 @@ from sklearn.cluster import KMeans
 ### Variables/Parameters ###
 PRINT_STUDENTS = 10
 
+## Columns the clustering runs on - gender, race/ethnicity and average score left out ##
+CLUSTER_FEATURES = [
+    'parental level of education', 'lunch', 'test preparation course',
+    'math score', 'reading score', 'writing score',
+]
+
 
 ### Functions/Methods ###
 ## Read the file path and return it to a variable ##
@@ -35,11 +41,11 @@ def numeric_conversion(data):
     preparation_mapping = {'none': 0,'completed': 1}
 
     ## Replace each string data element with its respective numeric ##
-    data['gender'] = data['gender'].replace(gender_mapping)
-    data['race/ethnicity'] = data['race/ethnicity'].replace(race_mapping)
-    data['parental level of education'] = data['parental level of education'].replace(parent_education_mapping)
-    data['lunch'] = data['lunch'].replace(lunch_mapping)
-    data['test preparation course'] = data['test preparation course'].replace(preparation_mapping)
+    data['gender'] = data['gender'].map(gender_mapping)
+    data['race/ethnicity'] = data['race/ethnicity'].map(race_mapping)
+    data['parental level of education'] = data['parental level of education'].map(parent_education_mapping)
+    data['lunch'] = data['lunch'].map(lunch_mapping)
+    data['test preparation course'] = data['test preparation course'].map(preparation_mapping)
     return data
 
 
@@ -109,33 +115,33 @@ def add_student():
     while True: # Math.
         try:
             math_score_in = int(input('[SYSTEM] Enter math score -> '))
-            if 1 <= math_score_in <= 100:
+            if 0 <= math_score_in <= 100:
                 student_data['math score'] = math_score_in
                 break
             else:
-                print("[SYSTEM] Invalid input, math score must be an integer and between 1 to 100")
+                print("[SYSTEM] Invalid input, math score must be an integer and between 0 to 100")
         except ValueError as e:
             print(f"[ERROR] An error came up. Log: {e}\n")
 
     while True: # Reading.
         try:
             reading_score_in = int(input('[SYSTEM] Enter reading score -> '))
-            if 1 <= reading_score_in <= 100:
+            if 0 <= reading_score_in <= 100:
                 student_data['reading score'] = reading_score_in
                 break
             else:
-                print("[ERROR] Invalid input, reading score must be an integer and between 1 to 100")
+                print("[ERROR] Invalid input, reading score must be an integer and between 0 to 100")
         except ValueError as e:
             print(f"[ERROR] An error came up. Log: {e}\n")
 
     while True: # Writing.
         try:
             writing_score_in = int(input('[SYSTEM] Enter writing score -> '))
-            if 1 <= writing_score_in <= 100:
+            if 0 <= writing_score_in <= 100:
                 student_data['writing score'] = writing_score_in
                 break
             else:
-                print("[ERROR] Invalid input, writing score must be an integer and between 1 to 100")            
+                print("[ERROR] Invalid input, writing score must be an integer and between 0 to 100")            
         except ValueError as e:
             print(f"[ERROR] An error came up. Log: {e}\n")
             
@@ -150,7 +156,8 @@ def close_students(new_data, data):
     
     ## Calculate the Distance between the recorded students ##
     original_scores = same_cluster_cp[['math score', 'reading score', 'writing score']]
-    new_student_scores = new_data[['math score', 'reading score', 'writing score']]
+    ## .iloc[0] for a Series - a DataFrame would align by index and leave every cell NaN ##
+    new_student_scores = new_data[['math score', 'reading score', 'writing score']].iloc[0]
     distances = ((original_scores - new_student_scores)**2).sum(axis=1)
     ## Save it - pandas accessor ##
     same_cluster_cp['distances'] = distances
@@ -173,10 +180,10 @@ def main():
     
     ## Call and create the intervals ##
     data_scaler = StandardScaler() # standardize the data.
-    scaled_data = data_scaler.fit_transform()
+    scaled_data = data_scaler.fit_transform(student_data[CLUSTER_FEATURES])
     
     ## Use KMeans for the Clustering ##
-    data_kmeans = KMeans(n_clusters=total_intervals, n_init=10)
+    data_kmeans = KMeans(n_clusters=total_intervals, n_init=10, random_state=42)
     student_data['cluster'] = data_kmeans.fit_predict(scaled_data)
     
     ## Display Data Statistics ##
@@ -197,7 +204,7 @@ def main():
                 new_student = pd.DataFrame([new_student]) # Dataframe.
                 new_student_avg = average(new_student) # Average.
                 new_student_final = numeric_conversion(new_student_avg) # Convert strings to Numbers.
-                new_student_scaled = data_scaler.transform(new_student_final) # Standardize.
+                new_student_scaled = data_scaler.transform(new_student_final[CLUSTER_FEATURES]) # Standardize.
                 new_student_final['cluster'] = data_kmeans.predict(new_student_scaled) # Clusterize.
                 
                 ## Results ##
