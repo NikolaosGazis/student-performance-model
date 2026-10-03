@@ -221,6 +221,6 @@ def main():
             print(f"[ERROR] Invalid input. Log: {e}")
 
 
-### Execute the program ###
+### Execution ###
 if __name__ == '__main__':
     main()
