@@ -1,13 +1,16 @@
 ##### Dataset Link: https://www.kaggle.com/datasets/spscientist/students-performance-in-exams #####
 
+
 ### Libraries/Packages ###
+import os
+import sys
 import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 from sklearn.cluster import KMeans
 
 
-### Variables/Parameters ###
+### Constants ###
 PRINT_STUDENTS = 10
 
 ## Columns the clustering runs on - gender, race/ethnicity and average score left out ##
@@ -21,7 +24,7 @@ CLUSTER_FEATURES = [
 ## Read the file path and return it to a variable ##
 def read_dataset(file):
     ## Dataframe - dtype: Declare specific types ##
-    df = pd.read_csv(file, dtype={'math score': int, 'reading score': int, 'writing score':int})
+    df = pd.read_csv(file, dtype={'math score': int, 'reading score': int, 'writing score': int})
     return df
 
 
@@ -35,10 +38,11 @@ def average(data):
 def numeric_conversion(data):
     ## Mapping ##
     gender_mapping = {'female': 0, 'male': 1}
-    race_mapping = {'group A': 0,'group B': 1,'group C': 2,'group D': 3,'group E': 4}
-    parent_education_mapping = {'some high school': 0,'high school': 1,'some college': 2,"associate's degree": 3,"bachelor's degree": 4,"master's degree": 5}
-    lunch_mapping = {'free/reduced': 0,'standard': 1}
-    preparation_mapping = {'none': 0,'completed': 1}
+    race_mapping = {'group A': 0, 'group B': 1, 'group C': 2, 'group D': 3, 'group E': 4}
+    parent_education_mapping = {'some high school': 0, 'high school': 1, 'some college': 2,
+                                "associate's degree": 3, "bachelor's degree": 4, "master's degree": 5}
+    lunch_mapping = {'free/reduced': 0, 'standard': 1}
+    preparation_mapping = {'none': 0, 'completed': 1}
 
     ## Replace each string data element with its respective numeric ##
     data['gender'] = data['gender'].map(gender_mapping)
@@ -50,7 +54,7 @@ def numeric_conversion(data):
 
 
 ## Ask the user on how many Intervals/Clusters they want the data to be split into ##
-def intervals(): 
+def intervals():
     while True:
         try:
             num_intervals = int(input("[SYSTEM] How many Intervals do you wish to have? -> "))
@@ -65,7 +69,7 @@ def intervals():
 ## Enter the Data for a New Student ##
 def add_student():
     student_data = {}
-    
+
     ## Gender ##
     while True:
         gender_in = input('[SYSTEM] Enter gender -> ').lower()
@@ -74,7 +78,7 @@ def add_student():
             break
         else:
             print("[SYSTEM] Invalid input for the gender attribute, try again.\n")
-    
+
     ## Race ##
     while True:
         race_in = input('[SYSTEM] Enter race/ethnicity (Only the letter) -> ').upper()
@@ -87,7 +91,8 @@ def add_student():
     ## Parental level of Education ##
     while True:
         ple_in = input('[SYSTEM] Enter parental level of education -> ').lower()
-        if ple_in in ['some high school', 'high school', 'some college', "associate's degree", "bachelor's degree", "master's degree"]:
+        if ple_in in ['some high school', 'high school', 'some college',
+                      "associate's degree", "bachelor's degree", "master's degree"]:
             student_data['parental level of education'] = ple_in
             break
         else:
@@ -101,7 +106,7 @@ def add_student():
             break
         else:
             print("[ERROR] Invalid input for the lunch attribute, try again.\n")
-    
+
     ## Test Preparation ##
     while True:
         test_prep_in = input('[SYSTEM] Enter test preparation course -> ').lower()
@@ -141,10 +146,10 @@ def add_student():
                 student_data['writing score'] = writing_score_in
                 break
             else:
-                print("[ERROR] Invalid input, writing score must be an integer and between 0 to 100")            
+                print("[ERROR] Invalid input, writing score must be an integer and between 0 to 100")
         except ValueError as e:
             print(f"[ERROR] An error came up. Log: {e}\n")
-            
+
     return student_data
 
 
@@ -152,8 +157,8 @@ def add_student():
 def close_students(new_data, data):
     ## Filter Students for the new data - make a copy of the original DataFrame ##
     same_cluster = data[data['cluster'] == new_data['cluster'].values[0]].copy()
-    same_cluster_cp = same_cluster[['math score', 'reading score','writing score']].copy()
-    
+    same_cluster_cp = same_cluster[['math score', 'reading score', 'writing score']].copy()
+
     ## Calculate the Distance between the recorded students ##
     original_scores = same_cluster_cp[['math score', 'reading score', 'writing score']]
     ## .iloc[0] for a Series - a DataFrame would align by index and leave every cell NaN ##
@@ -161,7 +166,7 @@ def close_students(new_data, data):
     distances = ((original_scores - new_student_scores)**2).sum(axis=1)
     ## Save it - pandas accessor ##
     same_cluster_cp['distances'] = distances
-    
+
     ## Sort and get the closest students related to the new one ##
     closest_students = same_cluster_cp.sort_values(by='distances').head(PRINT_STUDENTS)
     return closest_students
@@ -174,18 +179,18 @@ def main():
     student_data = read_dataset(csv_file)
     student_data = average(student_data)
     student_data = numeric_conversion(student_data)
-    
+
     ## Clustering ##
     total_intervals = intervals()
-    
+
     ## Call and create the intervals ##
     data_scaler = StandardScaler() # standardize the data.
     scaled_data = data_scaler.fit_transform(student_data[CLUSTER_FEATURES])
-    
+
     ## Use KMeans for the Clustering ##
     data_kmeans = KMeans(n_clusters=total_intervals, n_init=10, random_state=42)
     student_data['cluster'] = data_kmeans.fit_predict(scaled_data)
-    
+
     ## Display Data Statistics ##
     plt.scatter(student_data['average score'], student_data['cluster'] + 1, c=student_data['cluster'], cmap='viridis') # x, y, color, variant of colors.
     plt.title('Clustering of Students')
@@ -194,26 +199,26 @@ def main():
     plt.show()
 
     ## Ask the user is they wish to input a New Student ##
-    while True: 
+    while True:
         try:
-            answer= input("\nDo you wish to add another student? yes/no -> ").strip().lower()
-            if answer== 'yes':
+            answer = input("\nDo you wish to add another student? yes/no -> ").strip().lower()
+            if answer == 'yes':
                 new_student = add_student()
-                
+
                 ## Redo the process ##
                 new_student = pd.DataFrame([new_student]) # Dataframe.
                 new_student_avg = average(new_student) # Average.
                 new_student_final = numeric_conversion(new_student_avg) # Convert strings to Numbers.
                 new_student_scaled = data_scaler.transform(new_student_final[CLUSTER_FEATURES]) # Standardize.
                 new_student_final['cluster'] = data_kmeans.predict(new_student_scaled) # Clusterize.
-                
+
                 ## Results ##
                 print(f"\n[SYSTEM] Cluster in which the Student belongs: {new_student_final['cluster'].values[0] + 1}")
-                
+
                 ## Closest Students ##
                 closest_students = close_students(new_student_final, student_data)
                 print(f"\n[SYSTEM] Here are the closest students: {closest_students}")
-            elif answer== 'no':
+            elif answer == 'no':
                 break
             else:
                 print("[SYSTEM] answermust be either 'yes' or 'no'.")
@@ -224,3 +229,10 @@ def main():
 ### Execution ###
 if __name__ == '__main__':
     main()
+
+
+"""
+~ Notes ~
+• Needs pandas, scikit-learn and matplotlib -> pip install -r requirements.txt
+• StudentsPerformance.csv has to sit beside this module, the path is relative.
+"""
